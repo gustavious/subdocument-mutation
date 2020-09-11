@@ -1,9 +1,12 @@
 import Document from './sampleDocument.json';
-import { Operation, parseMutation, update } from './service';
+import { add, Operation, parseMutation, remove, update } from './service';
 
 const initialDocument = Document;
+// const initialMutation = JSON.parse(
+//   '{ "posts": [{"_id": 2, "value": "too"}, {"_id": 3, "value": "new"}] }'
+// );
 const initialMutation = JSON.parse(
-  '{ "posts": [{"_id": 2, "value": "too"}, {"_id": 3, "value": "new"}] }'
+  '{ "posts": [{"_id": 2, "_delete": true}] }'
 );
 
 interface Output {
@@ -28,8 +31,11 @@ export const generateUpdateStatement = (
   for (const operation of updateOperations) {
     console.log('Current operation: ', operation);
     if (operation.type === 'update') {
-      if (!output.$update) output.$update = {};
       output.$update = update(document, operation);
+    } else if (operation.type === 'add') {
+      output.$add = add(document, operation);
+    } else if (operation.type === 'remove') {
+      output.$remove = remove(document, operation);
     }
   }
 
@@ -37,4 +43,4 @@ export const generateUpdateStatement = (
 };
 
 // Try basic functionality
-// console.log('Result: ', generateUpdateStatement());
+console.log('Result: ', generateUpdateStatement());

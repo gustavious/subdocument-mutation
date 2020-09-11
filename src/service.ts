@@ -46,6 +46,8 @@ const findPathById = (obj: object, id: number) => {
 export interface Operation {
   type: string;
   _id?: number;
+  _delete: boolean;
+  subDocument?: string;
   value: string;
 }
 
@@ -56,14 +58,47 @@ export interface Operation {
  */
 export const parseMutation = (mutation: object): Operation[] => {
   const operations = [];
-  for (const subDocumnent of Object.values(mutation)) {
+  for (const [key, subDocumnent] of Object.entries(mutation)) {
     for (const operation of Object.values(subDocumnent)) {
-      console.log('Insert operation', operation);
       const operationObj = operation as object;
-      if ('_id' in operationObj) {
+      if ('_id' in operationObj && !('_delete' in operationObj)) {
         operations.push({ ...operationObj, type: 'update' });
+      } else if ('_delete' in operationObj) {
+        operations.push({ ...operationObj, type: 'remove' });
+      } else {
+        operations.push({ ...operationObj, type: 'add', subDocument: key });
       }
     }
   }
   return operations;
+};
+
+/**
+ * Add operation
+ */
+export const add = (document: object, operation: Operation) => {
+  console.log(`Add service called with:
+  Document: ${JSON.stringify(document)}
+  Mutation operation: ${JSON.stringify(operation)}`);
+
+  const addPath = findPathById(document, operation._id);
+  const objPath = `${addPath.substring(0, addPath.length - 2)}`;
+  const res = {};
+  res[objPath] = [{ value: operation.value }];
+  return res;
+};
+
+/**
+ * Remove Operation
+ */
+export const remove = (document: object, operation: Operation) => {
+  console.log(`Remove service called with:
+  Document: ${JSON.stringify(document)}
+  Mutation operation: ${JSON.stringify(operation)}`);
+
+  const addPath = findPathById(document, operation._id);
+  const objPath = `${addPath.substring(0, addPath.length - 4)}`;
+  const res = {};
+  res[objPath] = operation._delete;
+  return res;
 };
