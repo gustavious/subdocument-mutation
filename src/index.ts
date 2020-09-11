@@ -2,12 +2,7 @@ import Document from './sampleDocument.json';
 import { add, Operation, parseMutation, remove, update } from './service';
 
 const initialDocument = Document;
-// const initialMutation = JSON.parse(
-//   '{ "posts": [{"_id": 2, "value": "too"}] }'
-// );
-const initialMutation = JSON.parse(
-  '{ "posts": [{"_id": 3, "mentions": [{"_id": 6, "_delete": true}]}]}'
-);
+const initialMutation = JSON.parse('{ "posts": [{"_id": 2, "value": "too"}] }');
 
 interface Output {
   $add?: {};

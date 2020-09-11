@@ -35,3 +35,4 @@ Typescript routine to perform operations over subdocuments
 - Make every operation work with any kind of nested mutation structure
 - Set up a docker container and CI/CD pipelines
 - This code resulted quite messy, it can be refactored to be easy to read
+- Did not complete the multiple operations in one mutation case
