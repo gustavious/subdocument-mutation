@@ -2,16 +2,14 @@
  * Recursively search in the props of an object to search for a document with a given id
  * @param { object } document - original document
  * @param { object } operation - operation to be executed
- * @return Generates an add operation object
+ * @return Generates an update operation object
  */
-export const add = (document: object, operation: Operation) => {
-  console.log(`Add service called with:
+export const update = (document: object, operation: Operation) => {
+  console.log(`Update service called with:
   Document: ${JSON.stringify(document)}
   Mutation operation: ${JSON.stringify(operation)}`);
   const updatePath = findPathById(document, operation._id);
-  const updateStatement = getUpdateStatementFromPath(updatePath, operation.value);
-
-  return { $update: updateStatement };
+  return getUpdateStatementFromPath(updatePath, operation.value);
 };
 
 /**
@@ -45,7 +43,6 @@ const findPathById = (obj: object, id: number) => {
   }
 };
 
-
 export interface Operation {
   type: string;
   _id?: number;
@@ -64,7 +61,7 @@ export const parseMutation = (mutation: object): Operation[] => {
       console.log('Insert operation', operation);
       const operationObj = operation as object;
       if ('_id' in operationObj) {
-        operations.push({ ...operationObj, type: 'add' });
+        operations.push({ ...operationObj, type: 'update' });
       }
     }
   }
