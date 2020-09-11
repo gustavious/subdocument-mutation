@@ -3,10 +3,10 @@ import { add, Operation, parseMutation, remove, update } from './service';
 
 const initialDocument = Document;
 // const initialMutation = JSON.parse(
-//   '{ "posts": [{"_id": 2, "value": "too"}, {"_id": 3, "value": "new"}] }'
+//   '{ "posts": [{"_id": 2, "value": "too"}] }'
 // );
 const initialMutation = JSON.parse(
-  '{ "posts": [{"_id": 2, "_delete": true}] }'
+  '{ "posts": [{"_id": 3, "mentions": [{"_id": 6, "_delete": true}]}]}'
 );
 
 interface Output {

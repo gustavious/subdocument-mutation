@@ -1,4 +1,4 @@
-# array-mutation
+# Subdocument Array Mutation
 
 Typescript routine to perform operations over subdocuments
 
@@ -32,3 +32,6 @@ Typescript routine to perform operations over subdocuments
 - Some sort of persistence over the performed operations
 - More case scenarios to test (failure paths)
 - Expose the different operation through an API rest server
+- Make every operation work with any kind of nested mutation structure
+- Set up a docker container and CI/CD pipelines
+- This code resulted quite messy, it can be refactored to be easy to read

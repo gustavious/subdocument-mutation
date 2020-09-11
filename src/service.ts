@@ -9,20 +9,15 @@ export const update = (document: object, operation: Operation) => {
   Document: ${JSON.stringify(document)}
   Mutation operation: ${JSON.stringify(operation)}`);
   const updatePath = findPathById(document, operation._id);
-  return getUpdateStatementFromPath(updatePath, operation.value);
-};
-
-/**
- * Recursively search in the props of an object to search for a document with a given id
- * @param { string } path - object to be iterated
- * @param { string } value - desired id to find
- * @return dot notation patch to the object with the given id
- */
-const getUpdateStatementFromPath = (path: string, value: string | number) => {
-  const objPath = `${path.substring(0, path.length - 4)}.value`;
-  const res = {};
-  res[objPath] = value;
-  return res;
+  const rootDocumentToUpdate = updatePath
+    .substring(0, updatePath.length - 4)
+    .split('.')
+    .reduce((o, i) => o[i], document);
+  return getUpdateStatementFromPath(
+    updatePath,
+    rootDocumentToUpdate,
+    operation
+  );
 };
 
 /**
@@ -43,6 +38,22 @@ const findPathById = (obj: object, id: number) => {
   }
 };
 
+/**
+ * Recursive iteration to find a nested prop
+ */
+const recursivelyFindProp = (o, keyToBeFound, results) => {
+  Object.keys(o).forEach((key) => {
+    if (typeof o[key] === 'object') {
+      recursivelyFindProp(o[key], keyToBeFound, results);
+    } else {
+      if (key === keyToBeFound) {
+        return results.push(o[key]);
+      }
+    }
+  });
+  return results;
+};
+
 export interface Operation {
   type: string;
   _id?: number;
@@ -61,16 +72,34 @@ export const parseMutation = (mutation: object): Operation[] => {
   for (const [key, subDocumnent] of Object.entries(mutation)) {
     for (const operation of Object.values(subDocumnent)) {
       const operationObj = operation as object;
-      if ('_id' in operationObj && !('_delete' in operationObj)) {
-        operations.push({ ...operationObj, type: 'update' });
-      } else if ('_delete' in operationObj) {
-        operations.push({ ...operationObj, type: 'remove' });
+      const hasDelete = recursivelyFindProp(operationObj, '_delete', []).pop();
+      if ('_id' in operationObj && !('_delete' in operationObj) && !hasDelete) {
+        const _id = recursivelyFindProp(operationObj, '_id', []).pop();
+        operations.push({ ...operationObj, _id, type: 'update' });
+      } else if ('_delete' in operationObj || hasDelete) {
+        const _id = recursivelyFindProp(operationObj, '_id', []).pop();
+        operations.push({ ...operationObj, _id, type: 'remove' });
       } else {
         operations.push({ ...operationObj, type: 'add', subDocument: key });
       }
     }
   }
   return operations;
+};
+
+/**
+ * Given a path create the update mutation structure
+ * @param { string } path - object to be iterated
+ * @param { string } rootDocument - object to be updated
+ * @return dot notation patch to the object with the given id
+ */
+const getUpdateStatementFromPath = (path: string, rootDocument, operation) => {
+  const keyName = Object.keys(rootDocument)[1];
+  const objPath = `${path.substring(0, path.length - 4)}.${keyName}`;
+  const res = {};
+  res[objPath] =
+    operation.value || operation.mentions[0].text || rootDocument[keyName];
+  return res;
 };
 
 /**
@@ -96,9 +125,9 @@ export const remove = (document: object, operation: Operation) => {
   Document: ${JSON.stringify(document)}
   Mutation operation: ${JSON.stringify(operation)}`);
 
-  const addPath = findPathById(document, operation._id);
-  const objPath = `${addPath.substring(0, addPath.length - 4)}`;
+  const removePath = findPathById(document, operation._id);
+  const objPath = `${removePath.substring(0, removePath.length - 4)}`;
   const res = {};
-  res[objPath] = operation._delete;
+  res[objPath] = true;
   return res;
 };
